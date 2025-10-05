@@ -9,7 +9,7 @@ import spacy
 from dateutil.parser import parse
 
 # Load the large spaCy model
-nlp = spacy.load("en_core_web_lg")
+nlp = spacy.load("nlp = spacy.load("en_core_web_md")")
 
 app = FastAPI(title="ClimaScope API")
 
