@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Realistic Globe & Weather App | NASA Space Apps 2025</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden; 
+            background-color: #000000; 
+        }
+
+        canvas {
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        /* Navbar */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 5%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            position: absolute; 
+            width: 100%;
+            top: 0;
+            z-index: 1001; 
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            padding: 0.6rem 1.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.9);
+            color: #1e3c72;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Search Bar */
+        #search-container {
+            position: absolute;
+            display: flex;
+            gap: 10px;
+            top: 100px; 
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000; 
+            width: 350px;
+        }
+
+        #search-input {
+            flex: 1;
+            padding: 10px 15px;
+            font-size: 16px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            outline: none;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+
+        #search-input:focus {
+            border-color: #0077ff;
+            background-color: white;
+        }
+
+        #search-btn {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        #search-btn:hover {
+            background: rgba(255, 255, 255, 0.9);
+            color: #1e3c72;
+        }
+
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 18px;
+            text-align: center;
+            z-index: 900;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px 30px;
+            border-radius: 10px;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.2);
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            position: absolute; 
+            bottom: 0;
+            width: 100%;
+            z-index: 10;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            nav {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem 5%;
+            }
+            .logo { font-size: 1.2rem; }
+            .nav-buttons { flex-wrap: wrap; justify-content: center; }
+            .nav-btn { padding: 0.5rem 1rem; font-size: 0.85rem; }
+            #search-container { top: 120px; width: 90%; max-width: 350px; }
+            footer { font-size: 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">🌦️ Will it Rain on My Parade?</div>
+        <div class="nav-buttons">
+            <a href="1.html" class="nav-btn">Dashboard</a>
+            <a href="#about" class="nav-btn">About</a>
+            <a href="#contact" class="nav-btn">Contact</a>
+        </div>
+    </nav>
+
+    <div id="search-container">
+        <input type="text" id="search-input" placeholder="Search location...">
+        <button id="search-btn">Search</button>
+    </div>
+
+    <div id="loading">Loading Earth textures...</div>
+    
+    <footer>
+        NASA Space Apps Hackathon 2025 – Team Cosmic Coders Official
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <script>
+        // Check if Three.js loaded
+        if (typeof THREE === 'undefined') {
+            document.getElementById('loading').innerHTML = 
+                '❌ Three.js failed to load!<br><br>Please check your internet connection.';
+        } else {
+            initEarth();
+        }
+        
+        function initEarth() {
+            // Scene setup
+            const scene = new THREE.Scene();
+            
+            // Camera
+            const camera = new THREE.PerspectiveCamera(
+                45, 
+                window.innerWidth / window.innerHeight, 
+                0.1, 
+                1000
+            );
+            camera.position.z = 3;
+            
+            // Renderer
+            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            document.body.appendChild(renderer.domElement);
+            
+            // Add stars background
+            const starGeometry = new THREE.BufferGeometry();
+            const starMaterial = new THREE.PointsMaterial({
+                color: 0xffffff,
+                size: 0.7,
+                sizeAttenuation: true
+            });
+            
+            const starVertices = [];
+            for (let i = 0; i < 10000; i++) {
+                const x = (Math.random() - 0.5) * 2000;
+                const y = (Math.random() - 0.5) * 2000;
+                const z = (Math.random() - 0.5) * 2000;
+                starVertices.push(x, y, z);
+            }
+            
+            starGeometry.setAttribute(
+                'position',
+                new THREE.Float32BufferAttribute(starVertices, 3)
+            );
+            
+            const stars = new THREE.Points(starGeometry, starMaterial);
+            scene.add(stars);
+            
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0x333333);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+            directionalLight.position.set(5, 3, 5);
+            scene.add(directionalLight);
+            
+            // Earth sphere
+            const geometry = new THREE.SphereGeometry(1, 64, 64);
+            
+            // Texture loader
+            const textureLoader = new THREE.TextureLoader();
+            let earth;
+            let clouds;
+            
+            // Load textures with error handling
+            textureLoader.load(
+                'textures/earth_day.jpg',
+                function(texture) {
+                    // Success - texture loaded
+                    const material = new THREE.MeshPhongMaterial({
+                        map: texture,
+                        shininess: 25
+                    });
+                    
+                    earth = new THREE.Mesh(geometry, material);
+                    scene.add(earth);
+                    
+                    // Try to load optional cloud layer
+                    textureLoader.load(
+                        'textures/earth_clouds.jpg',
+                        function(cloudTexture) {
+                            const cloudGeometry = new THREE.SphereGeometry(1.01, 64, 64);
+                            const cloudMaterial = new THREE.MeshPhongMaterial({
+                                map: cloudTexture,
+                                transparent: true,
+                                opacity: 0.4
+                            });
+                            clouds = new THREE.Mesh(cloudGeometry, cloudMaterial);
+                            scene.add(clouds);
+                        },
+                        undefined,
+                        function(error) {
+                            console.log('Cloud texture not found (optional)');
+                        }
+                    );
+                    
+                    document.getElementById('loading').style.display = 'none';
+                },
+                function(xhr) {
+                    // Progress
+                    const percent = (xhr.loaded / xhr.total * 100).toFixed(0);
+                    document.getElementById('loading').textContent = 
+                        `Loading textures... ${percent}%`;
+                },
+                function(error) {
+                    // Error - fallback to colored sphere
+                    document.getElementById('loading').innerHTML = 
+                        '⚠️ Textures not found!<br><br>' +
+                        'Using basic colored globe.<br><br>' +
+                        '<small>To use real textures:<br>' +
+                        '1. Create "textures" folder<br>' +
+                        '2. Add earth_day.jpg<br>' +
+                        'Get free textures from solarsystemscope.com/textures/</small>';
+                    
+                    setTimeout(() => {
+                        document.getElementById('loading').style.display = 'none';
+                    }, 5000);
+                    
+                    // Create fallback colored Earth
+                    const fallbackMaterial = new THREE.MeshPhongMaterial({
+                        color: 0x2233ff,
+                        emissive: 0x112244
+                    });
+                    earth = new THREE.Mesh(geometry, fallbackMaterial);
+                    scene.add(earth);
+                    
+                    // Add simple continents
+                    addSimpleContinents(earth);
+                }
+            );
+            
+            // Simple continent shapes for fallback
+            function addSimpleContinents(earthMesh) {
+                const continentMaterial = new THREE.MeshPhongMaterial({
+                    color: 0x00ff00
+                });
+                
+                const positions = [
+                    [0.5, 0.3, 0.8],
+                    [-0.4, 0.5, 0.7],
+                    [0.7, -0.2, 0.6],
+                    [-0.6, -0.4, 0.6],
+                    [0.2, 0.7, 0.5],
+                    [-0.3, -0.6, 0.7]
+                ];
+                
+                positions.forEach(pos => {
+                    const continentGeom = new THREE.SphereGeometry(0.15, 16, 16);
+                    const continent = new THREE.Mesh(continentGeom, continentMaterial);
+                    continent.position.set(pos[0], pos[1], pos[2]);
+                    earthMesh.add(continent);
+                });
+            }
+            
+            // Mouse controls
+            let isDragging = false;
+            let previousMousePosition = { x: 0, y: 0 };
+            
+            renderer.domElement.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+            });
+            
+            renderer.domElement.addEventListener('mousemove', (e) => {
+                if (isDragging && earth) {
+                    const deltaX = e.clientX - previousMousePosition.x;
+                    const deltaY = e.clientY - previousMousePosition.y;
+                    
+                    earth.rotation.y += deltaX * 0.005;
+                    earth.rotation.x += deltaY * 0.005;
+                    
+                    if (clouds) {
+                        clouds.rotation.y += deltaX * 0.005;
+                        clouds.rotation.x += deltaY * 0.005;
+                    }
+                    
+                    previousMousePosition = { x: e.clientX, y: e.clientY };
+                }
+            });
+            
+            renderer.domElement.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+            
+            renderer.domElement.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                camera.position.z += e.deltaY * 0.001;
+                camera.position.z = Math.max(1.5, Math.min(5, camera.position.z));
+            });
+            
+            // Resize handling
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+            
+            // Animation loop
+            function animate() {
+                requestAnimationFrame(animate);
+                
+                if (earth && !isDragging) {
+                    earth.rotation.y += 0.001;
+                }
+                
+                if (clouds && !isDragging) {
+                    clouds.rotation.y += 0.0012;
+                }
+                
+                renderer.render(scene, camera);
+            }
+            
+            animate();
+        }
+
+        // Search functionality
+        document.getElementById('search-btn').addEventListener('click', function() {
+            const location = document.getElementById('search-input').value;
+            if (location) {
+                alert('Searching for: ' + location);
+                // Add your search logic here
+            }
+        });
+
+        document.getElementById('search-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('search-btn').click();
+            }
+        });
+    </script>
+</body>
+</html>

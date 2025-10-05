@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Will it Rain on My Parade? | NASA Space Apps 2025</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(ellipse at center, #0f0f23 0%, #000000 100%);
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* Animated starfield background */
+        .starfield {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* Canvas for Earth */
+        #earth-canvas {
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            width: 100%;
+            height: 100%;
+            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        #earth-canvas.scrolled {
+            transform: translateX(60%) scale(0.6);
+            opacity: 0.7;
+        }
+
+        /* Content overlay */
+        .content-wrapper {
+            position: relative;
+            z-index: 10;
+            pointer-events: none; /* Make the wrapper transparent to mouse events */
+        }
+        
+        /* Re-enable pointer events for interactive content */
+        nav, .content-section, .hero-section, .final-cta, footer {
+            pointer-events: auto;
+        }
+
+        /* NASA-style navbar */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 5%;
+            background: rgba(15, 15, 35, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 2px solid rgba(0, 162, 255, 0.3);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1001;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 30px rgba(0, 162, 255, 0.1);
+        }
+
+        nav.scrolled {
+            background: rgba(0, 0, 0, 0.95);
+            border-bottom: 2px solid rgba(255, 107, 107, 0.5);
+        }
+
+        .logo {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: #00a2ff;
+            text-shadow: 0 0 20px rgba(0, 162, 255, 0.5);
+            letter-spacing: 1px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            padding: 0.8rem 1.5rem;
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+            border-radius: 8px;
+        }
+
+        .nav-link:hover {
+            color: #00a2ff;
+            background: rgba(0, 162, 255, 0.1);
+            border-color: rgba(0, 162, 255, 0.3);
+        }
+
+        .nav-btn {
+            padding: 0.8rem 2rem;
+            background: linear-gradient(135deg, #00a2ff, #0066cc);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: 0 4px 15px rgba(0, 162, 255, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.6s;
+        }
+
+        .nav-btn:hover::before {
+            left: 100%;
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 162, 255, 0.6);
+        }
+
+        /* Enhanced Hero Section */
+        .hero-section {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            text-align: left;
+            padding: 2rem 5%;
+            position: relative;
+            max-width: 50%;
+        }
+
+        .hero-content {
+            animation: slideInLeft 1.2s ease-out;
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .hero-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 4rem;
+            font-weight: 900;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #00a2ff, #ffffff, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+        }
+
+        .hero-subtitle {
+            font-size: 1.4rem;
+            margin-bottom: 2.5rem;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 300;
+            line-height: 1.6;
+        }
+
+        .cta-button {
+            padding: 1.2rem 3.5rem;
+            font-size: 1.2rem;
+            background: linear-gradient(135deg, #00a2ff, #0066cc, #ff6b6b);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 700;
+            font-family: 'Orbitron', monospace;
+            transition: all 0.4s ease;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: 0 15px 35px rgba(0, 162, 255, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.6s;
+        }
+
+        .cta-button:hover::before {
+            left: 100%;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 20px 50px rgba(0, 162, 255, 0.6);
+        }
+
+        /* Enhanced scroll indicator */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 30px;
+            right: 50px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .scroll-indicator span {
+            display: block;
+            width: 35px;
+            height: 60px;
+            border: 3px solid #00a2ff;
+            border-radius: 30px;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0, 162, 255, 0.3);
+        }
+
+        .scroll-indicator span::before {
+            content: '';
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            width: 8px;
+            height: 8px;
+            margin-left: -4px;
+            background: #00a2ff;
+            border-radius: 50%;
+            animation: scrollPulse 2s infinite;
+            box-shadow: 0 0 10px rgba(0, 162, 255, 0.8);
+        }
+
+        @keyframes scrollPulse {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(25px); }
+        }
+
+        /* Content Sections */
+        .content-section {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 6rem 5%;
+            position: relative;
+        }
+
+        .section-content {
+            max-width: 1400px;
+            width: 100%;
+        }
+
+        .section-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            background: linear-gradient(135deg, #00a2ff, #ffffff, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 900;
+            letter-spacing: 2px;
+        }
+
+        .section-subtitle {
+            font-size: 1.3rem;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 4rem;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            font-weight: 300;
+        }
+
+        /* Premium Problem Box */
+        .problem-box {
+            background: linear-gradient(135deg, 
+                rgba(0, 162, 255, 0.1) 0%, 
+                rgba(255, 107, 107, 0.1) 100%);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(0, 162, 255, 0.3);
+            border-radius: 30px;
+            padding: 4rem;
+            margin-bottom: 4rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 162, 255, 0.2);
+        }
+
+        .problem-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(0, 162, 255, 0.1), 
+                transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .problem-box p {
+            font-size: 1.3rem;
+            line-height: 1.8;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 400;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Step Cards */
+        .steps-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 3rem;
+            margin-top: 4rem;
+        }
+
+        .step-card {
+            background: linear-gradient(145deg, 
+                rgba(15, 15, 35, 0.8) 0%, 
+                rgba(0, 162, 255, 0.1) 100%);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(0, 162, 255, 0.2);
+            border-radius: 25px;
+            padding: 3rem;
+            text-align: center;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 162, 255, 0.1);
+        }
+
+        .step-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, transparent, rgba(0, 162, 255, 0.2), transparent);
+            animation: rotate 4s linear infinite;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .step-card:hover::before {
+            opacity: 1;
+        }
+
+        @keyframes rotate {
+            100% { transform: rotate(360deg); }
+        }
+
+        .step-card:hover {
+            transform: translateY(-15px) scale(1.02);
+            border-color: rgba(0, 162, 255, 0.6);
+            box-shadow: 0 25px 60px rgba(0, 162, 255, 0.3);
+        }
+
+        .step-icon {
+            font-size: 4rem;
+            margin-bottom: 2rem;
+            filter: drop-shadow(0 0 20px rgba(0, 162, 255, 0.5));
+            position: relative;
+            z-index: 1;
+        }
+
+        .step-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #00a2ff;
+            font-weight: 700;
+            position: relative;
+            z-index: 1;
+        }
+
+        .step-description {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.8;
+            font-size: 1.1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 3rem;
+            margin-top: 4rem;
+        }
+
+        .feature-card {
+            background: linear-gradient(145deg, 
+                rgba(15, 15, 35, 0.9) 0%, 
+                rgba(255, 107, 107, 0.1) 100%);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(255, 107, 107, 0.2);
+            border-radius: 25px;
+            padding: 3rem;
+            text-align: center;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(255, 107, 107, 0.1);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-15px) scale(1.02);
+            border-color: rgba(255, 107, 107, 0.6);
+            box-shadow: 0 25px 60px rgba(255, 107, 107, 0.3);
+        }
+
+        .feature-icon {
+            font-size: 3.5rem;
+            margin-bottom: 2rem;
+            filter: drop-shadow(0 0 20px rgba(255, 107, 107, 0.5));
+        }
+
+        .feature-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: #ff6b6b;
+            font-weight: 700;
+        }
+
+        .feature-description {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.05rem;
+            line-height: 1.7;
+        }
+
+        /* Use Cases Grid */
+        .use-cases-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 3rem;
+            margin-top: 4rem;
+        }
+
+        .use-case-card {
+            background: linear-gradient(145deg, 
+                rgba(0, 162, 255, 0.15) 0%, 
+                rgba(255, 107, 107, 0.15) 50%,
+                rgba(15, 15, 35, 0.9) 100%);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            padding: 3.5rem;
+            text-align: center;
+            transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 15px 40px rgba(0, 162, 255, 0.2);
+        }
+
+        .use-case-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, 
+                rgba(0, 162, 255, 0.1), 
+                rgba(255, 107, 107, 0.1));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .use-case-card:hover::after {
+            opacity: 1;
+        }
+
+        .use-case-card:hover {
+            transform: scale(1.05);
+            border-color: rgba(0, 162, 255, 0.5);
+            box-shadow: 0 30px 80px rgba(0, 162, 255, 0.4);
+        }
+
+        .use-case-icon {
+            font-size: 4.5rem;
+            margin-bottom: 2rem;
+            filter: drop-shadow(0 0 25px rgba(0, 162, 255, 0.6));
+            position: relative;
+            z-index: 1;
+        }
+
+        .use-case-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+            color: white;
+            font-weight: 700;
+            position: relative;
+            z-index: 1;
+        }
+
+        .use-case-description {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.8;
+            font-size: 1.1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Final CTA */
+        .final-cta {
+            text-align: center;
+            padding: 8rem 2rem;
+            background: linear-gradient(135deg, 
+                rgba(0, 162, 255, 0.1) 0%, 
+                rgba(15, 15, 35, 0.9) 50%,
+                rgba(255, 107, 107, 0.1) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .final-cta::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0, 162, 255, 0.1), transparent);
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .final-cta h2 {
+            font-family: 'Orbitron', monospace;
+            font-size: 3.5rem;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, #00a2ff, #ffffff, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 900;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 3rem;
+            background: rgba(0, 0, 0, 0.95);
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1rem;
+            border-top: 2px solid rgba(0, 162, 255, 0.3);
+            font-family: 'Orbitron', monospace;
+            font-weight: 400;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .hero-section {
+                max-width: 70%;
+            }
+            #earth-canvas.scrolled {
+                transform: translateX(40%) scale(0.5);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero-section {
+                max-width: 100%;
+                text-align: center;
+                align-items: center;
+            }
+            
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.1rem;
+            }
+            
+            .section-title {
+                font-size: 2rem;
+            }
+            
+            .nav-buttons {
+                gap: 0.5rem;
+            }
+            
+            .nav-link {
+                display: none;
+            }
+            
+            .logo {
+                font-size: 1.2rem;
+            }
+            
+            #earth-canvas.scrolled {
+                transform: translateX(0) scale(0.4);
+                opacity: 0.3;
+            }
+            
+            .steps-container,
+            .features-grid,
+            .use-cases-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 15, 35, 0.5);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #00a2ff, #ff6b6b);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #0066cc, #ff5252);
+        }
+    </style>
+</head>
+<body>
+    <div class="starfield" id="starfield"></div>
+    <canvas id="earth-canvas"></canvas>
+
+    <div class="content-wrapper">
+        <nav id="navbar">
+            <div class="logo">🌦️ WILL IT RAIN ON MY PARADE?</div>
+            <div class="nav-buttons">
+                <a href="#how-it-works" class="nav-link">How It Works</a>
+                <a href="1.html" class="nav-btn">Dashboard</a>
+            </div>
+        </nav>
+
+        <section class="hero-section">
+            <div class="hero-content">
+                <h1 class="hero-title">Plan Your Perfect Outdoor Event</h1>
+                <p class="hero-subtitle">Know the weather odds 6 months in advance using 30+ years of NASA data</p>
+                <a href="../public/index.html" class="cta-button">Start Planning Now</a>
+            </div>
+            <div class="scroll-indicator">
+                <span></span>
+            </div>
+        </section>
+
+        <section class="content-section">
+            <div class="section-content">
+                <h2 class="section-title">The Challenge</h2>
+                <div class="problem-box">
+                    <p>Planning a wedding, festival, or outdoor adventure months in advance? Weather forecasts only work 7-10 days out. That's where we come in. Our app doesn't predict the future—it shows you historical weather probabilities so you can plan with confidence, not guesswork.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="content-section" id="how-it-works">
+            <div class="section-content">
+                <h2 class="section-title">How It Works</h2>
+                <p class="section-subtitle">Three simple steps to weather-informed planning</p>
+                <div class="steps-container">
+                    <div class="step-card">
+                        <div class="step-icon">📍</div>
+                        <h3 class="step-title">Choose Location</h3>
+                        <p class="step-description">Select your event location on our interactive map or search by name</p>
+                    </div>
+                    <div class="step-card">
+                        <div class="step-icon">📅</div>
+                        <h3 class="step-title">Pick Your Date</h3>
+                        <p class="step-description">Choose any day of the year, even months in advance</p>
+                    </div>
+                    <div class="step-card">
+                        <div class="step-icon">📊</div>
+                        <h3 class="step-title">Get Probabilities</h3>
+                        <p class="step-description">View historical weather odds and climate trends for your chosen day</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="content-section">
+            <div class="section-content">
+                <h2 class="section-title">Powered by NASA Science</h2>
+                <p class="section-subtitle">Decades of Earth observation data at your fingertips</p>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🌍</div>
+                        <h3 class="feature-title">30+ Years of Data</h3>
+                        <p class="feature-description">Access comprehensive historical weather patterns from NASA satellites</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📈</div>
+                        <h3 class="feature-title">Climate Trend Analysis</h3>
+                        <p class="feature-description">See how weather probabilities are changing over time</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🎯</div>
+                        <h3 class="feature-title">Event-Specific Insights</h3>
+                        <p class="feature-description">Tailored information for rain, heat, wind, and extreme conditions</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">💾</div>
+                        <h3 class="feature-title">Download Reports</h3>
+                        <p class="feature-description">Export data in CSV or JSON format for your records</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="content-section">
+            <div class="section-content">
+                <h2 class="section-title">Perfect For Every Occasion</h2>
+                <p class="section-subtitle">Whether rain or shine, plan with confidence</p>
+                <div class="use-cases-grid">
+                    <div class="use-case-card">
+                        <div class="use-case-icon">💒</div>
+                        <h3 class="use-case-title">Wedding Planning</h3>
+                        <p class="use-case-description">Choose the perfect date with the lowest chance of rain for your outdoor ceremony</p>
+                    </div>
+                    <div class="use-case-card">
+                        <div class="use-case-icon">🎪</div>
+                        <h3 class="use-case-title">Festival Organization</h3>
+                        <p class="use-case-description">Schedule events when weather conditions are most favorable for crowds</p>
+                    </div>
+                    <div class="use-case-card">
+                        <div class="use-case-icon">🥾</div>
+                        <h3 class="use-case-title">Hiking Expeditions</h3>
+                        <p class="use-case-description">Plan trail adventures knowing the odds of extreme heat, cold, or storms</p>
+                    </div>
+                    <div class="use-case-card">
+                        <div class="use-case-icon">⛷️</div>
+                        <h3 class="use-case-title">Ski Trip Planning</h3>
+                        <p class="use-case-description">Find the best weeks for powder conditions based on historical snowfall data</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="final-cta">
+            <h2>Ready to Plan with Confidence?</h2>
+            <p style="font-size: 1.2rem; margin-bottom: 2rem; color: rgba(255, 255, 255, 0.8); position: relative; z-index: 1;">Access decades of NASA weather data and make informed decisions about your outdoor events</p>
+            <a href="1.html" class="cta-button">Access Dashboard</a>
+        </section>
+
+        <footer>
+            NASA SPACE APPS HACKATHON 2025 — TEAM COSMIC CODERS OFFICIAL
+        </footer>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <script>
+        // Generate animated starfield
+        function createStarfield() {
+            const starfield = document.getElementById('starfield');
+            const starCount = 200;
+            
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                
+                const size = Math.random() * 2 + 1;
+                star.style.width = size + 'px';
+                star.style.height = size + 'px';
+                
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                
+                star.style.animationDelay = Math.random() * 3 + 's';
+                star.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                
+                starfield.appendChild(star);
+            }
+        }
+        
+        createStarfield();
+
+        // Navbar scroll effect
+        let lastScrollY = window.scrollY;
+        const navbar = document.getElementById('navbar');
+        const earthCanvas = document.getElementById('earth-canvas');
+        
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+                earthCanvas.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+                earthCanvas.classList.remove('scrolled');
+            }
+        });
+
+        // Three.js Earth Scene
+        if (typeof THREE === 'undefined') {
+            console.error('Three.js failed to load');
+        } else {
+            initEarth();
+        }
+        
+        function initEarth() {
+            const canvas = document.getElementById('earth-canvas');
+            const scene = new THREE.Scene();
+            
+            const camera = new THREE.PerspectiveCamera(
+                45, 
+                window.innerWidth / window.innerHeight, 
+                0.1, 
+                1000
+            );
+            camera.position.z = 5;
+            
+            const renderer = new THREE.WebGLRenderer({ 
+                canvas: canvas,
+                antialias: true,
+                alpha: true
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            
+            // Stars background
+            const starGeometry = new THREE.BufferGeometry();
+            const starMaterial = new THREE.PointsMaterial({
+                color: 0xffffff,
+                size: 0.7,
+                sizeAttenuation: true
+            });
+            
+            const starVertices = [];
+            for (let i = 0; i < 10000; i++) {
+                const x = (Math.random() - 0.5) * 2000;
+                const y = (Math.random() - 0.5) * 2000;
+                const z = (Math.random() - 0.5) * 2000;
+                starVertices.push(x, y, z);
+            }
+            
+            starGeometry.setAttribute(
+                'position',
+                new THREE.Float32BufferAttribute(starVertices, 3)
+            );
+            
+            const stars = new THREE.Points(starGeometry, starMaterial);
+            scene.add(stars);
+            
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0x333333);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+            directionalLight.position.set(5, 3, 5);
+            scene.add(directionalLight);
+            
+            // Earth
+            const geometry = new THREE.SphereGeometry(1, 64, 64);
+            const textureLoader = new THREE.TextureLoader();
+            let earth;
+            let clouds;
+            
+            textureLoader.load(
+                'textures/earth_day.jpg',
+                function(texture) {
+                    const material = new THREE.MeshPhongMaterial({
+                        map: texture,
+                        shininess: 25
+                    });
+                    earth = new THREE.Mesh(geometry, material);
+                    scene.add(earth);
+                    textureLoader.load(
+                        'textures/earth_clouds.jpg',
+                        function(cloudTexture) {
+                            const cloudGeometry = new THREE.SphereGeometry(1.01, 64, 64);
+                            const cloudMaterial = new THREE.MeshPhongMaterial({
+                                map: cloudTexture,
+                                transparent: true,
+                                opacity: 0.4
+                            });
+                            clouds = new THREE.Mesh(cloudGeometry, cloudMaterial);
+                            scene.add(clouds);
+                        }
+                    );
+                },
+                undefined,
+                function(error) {
+                    const fallbackMaterial = new THREE.MeshPhongMaterial({ color: 0x2233ff, emissive: 0x112244 });
+                    earth = new THREE.Mesh(geometry, fallbackMaterial);
+                    scene.add(earth);
+                }
+            );
+            
+            // Mouse interaction
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+            let isDragging = false;
+            let previousMousePosition = { x: 0, y: 0 };
+            let isHoveringGlobe = false;
+            let targetRotation = { x: 0, y: 0 };
+            let currentRotation = { x: 0, y: 0 };
+            
+            canvas.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+            });
+            
+            canvas.addEventListener('mousemove', (e) => {
+                mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+                
+                if (isDragging && earth) {
+                    const deltaX = e.clientX - previousMousePosition.x;
+                    const deltaY = e.clientY - previousMousePosition.y;
+                    
+                    earth.rotation.y += deltaX * 0.005;
+                    earth.rotation.x += deltaY * 0.005;
+                    
+                    if (clouds) {
+                        clouds.rotation.y += deltaX * 0.005;
+                        clouds.rotation.x += deltaY * 0.005;
+                    }
+                    
+                    currentRotation.x = earth.rotation.x;
+                    currentRotation.y = earth.rotation.y;
+                    
+                    previousMousePosition = { x: e.clientX, y: e.clientY };
+                }
+            });
+            
+            canvas.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+            
+            // Touch support for mobile
+            canvas.addEventListener('touchstart', (e) => {
+                isDragging = true;
+                previousMousePosition = { 
+                    x: e.touches[0].clientX, 
+                    y: e.touches[0].clientY 
+                };
+            });
+            
+            canvas.addEventListener('touchmove', (e) => {
+                if (isDragging && earth) {
+                    const deltaX = e.touches[0].clientX - previousMousePosition.x;
+                    const deltaY = e.touches[0].clientY - previousMousePosition.y;
+                    
+                    earth.rotation.y += deltaX * 0.005;
+                    earth.rotation.x += deltaY * 0.005;
+                    
+                    if (clouds) {
+                        clouds.rotation.y += deltaX * 0.005;
+                        clouds.rotation.x += deltaY * 0.005;
+                    }
+                    
+                    previousMousePosition = { 
+                        x: e.touches[0].clientX, 
+                        y: e.touches[0].clientY 
+                    };
+                }
+            });
+            
+            canvas.addEventListener('touchend', () => {
+                isDragging = false;
+            });
+            
+            // Zoom in animation on page load
+            let zoomProgress = 0;
+            const zoomDuration = 2;
+            const startZ = 5;
+            const endZ = 3;
+            
+            function easeOutCubic(t) {
+                return 1 - Math.pow(1 - t, 3);
+            }
+            
+            // Resize handler
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+            
+            // Animation loop
+            const clock = new THREE.Clock();
+            
+            function animate() {
+                requestAnimationFrame(animate);
+                const delta = clock.getDelta();
+                
+                if (zoomProgress < zoomDuration) {
+                    zoomProgress += delta;
+                    const t = Math.min(zoomProgress / zoomDuration, 1);
+                    camera.position.z = startZ - (startZ - endZ) * easeOutCubic(t);
+                }
+                
+                if (earth && !isDragging) {
+                    raycaster.setFromCamera(mouse, camera);
+                    const intersects = raycaster.intersectObject(earth);
+
+                    if (intersects.length > 0) {
+                        isHoveringGlobe = true;
+                        canvas.style.cursor = 'pointer';
+                    } else {
+                        isHoveringGlobe = false;
+                        canvas.style.cursor = 'default';
+                    }
+                } else if(earth) {
+                    canvas.style.cursor = isDragging ? 'grabbing' : 'default';
+                }
+
+                if (earth && !isDragging) {
+                    if (isHoveringGlobe) {
+                        targetRotation.y = mouse.x * 0.3;
+                        targetRotation.x = mouse.y * 0.3;
+                        
+                        const lerpFactor = 0.1;
+                        currentRotation.x += (targetRotation.x - currentRotation.x) * lerpFactor;
+                        currentRotation.y += (targetRotation.y - currentRotation.y) * lerpFactor;
+                        
+                        earth.rotation.x = currentRotation.x;
+                        earth.rotation.y = currentRotation.y;
+                        
+                        if (clouds) {
+                            clouds.rotation.x = currentRotation.x;
+                            clouds.rotation.y = currentRotation.y;
+                        }
+                    } else {
+                        earth.rotation.y += 0.009; // Slower, more subtle auto-rotation
+                        currentRotation.y = earth.rotation.y;
+                        currentRotation.x = earth.rotation.x;
+                    }
+                }
+                
+                if (clouds && !isDragging && !isHoveringGlobe) {
+                    clouds.rotation.y += 0.009; // Slightly faster cloud rotation
+                }
+                
+                renderer.render(scene, camera);
+            }
+            
+            animate();
+        }
+    </script>
+</body>
+</html>

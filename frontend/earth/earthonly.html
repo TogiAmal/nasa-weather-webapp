@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Rotating Earth - Local with Textures</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #000;
+      font-family: Arial, sans-serif;
+    }
+    canvas {
+      display: block;
+    }
+    #info {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      color: white;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 15px;
+      border-radius: 8px;
+      font-size: 14px;
+      z-index: 100;
+    }
+    #loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-size: 24px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div id="info">
+    <h3>🌍 3D Earth Globe (Local)</h3>
+    <p>Drag to rotate | Scroll to zoom | Right-click drag to pan</p>
+    <p style="font-size: 11px; margin-top: 10px;">
+      <strong>Setup:</strong><br>
+      1. Download three.min.js to same folder<br>
+      2. Create 'textures' folder<br>
+      3. Add earth_day.jpg (and optionally others)
+    </p>
+  </div>
+  
+  <div id="loading">Loading Earth textures...</div>
+  
+  <!-- Load Three.js locally - DOWNLOAD THIS FILE FIRST -->
+  <!-- Get it from: https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js -->
+  <script src="three.min.js"></script>
+  
+  <script>
+    // Check if Three.js loaded
+    if (typeof THREE === 'undefined') {
+      document.getElementById('loading').innerHTML = 
+        '❌ Three.js not found!<br><br>' +
+        'Please download three.min.js from:<br>' +
+        '<a href="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" style="color: #4a90e2;">Download three.min.js</a><br><br>' +
+        'Save it in the same folder as this HTML file.';
+    } else {
+      initEarth();
+    }
+    
+    function initEarth() {
+      // Scene setup
+      const scene = new THREE.Scene();
+      
+      // Camera
+      const camera = new THREE.PerspectiveCamera(
+        45, 
+        window.innerWidth / window.innerHeight, 
+        0.1, 
+        1000
+      );
+      camera.position.z = 3;
+      
+      // Renderer
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
+      document.body.appendChild(renderer.domElement);
+      
+      // Add stars background
+      const starGeometry = new THREE.BufferGeometry();
+      const starMaterial = new THREE.PointsMaterial({
+        color: 0xffffff,
+        size: 0.7,
+        sizeAttenuation: true
+      });
+      
+      const starVertices = [];
+      for (let i = 0; i < 10000; i++) {
+        const x = (Math.random() - 0.5) * 2000;
+        const y = (Math.random() - 0.5) * 2000;
+        const z = (Math.random() - 0.5) * 2000;
+        starVertices.push(x, y, z);
+      }
+      
+      starGeometry.setAttribute(
+        'position',
+        new THREE.Float32BufferAttribute(starVertices, 3)
+      );
+      
+      const stars = new THREE.Points(starGeometry, starMaterial);
+      scene.add(stars);
+      
+      // Lighting
+      const ambientLight = new THREE.AmbientLight(0x333333);
+      scene.add(ambientLight);
+      
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+      directionalLight.position.set(5, 3, 5);
+      scene.add(directionalLight);
+      
+      // Earth sphere
+      const geometry = new THREE.SphereGeometry(1, 64, 64);
+      
+      // Texture loader
+      const textureLoader = new THREE.TextureLoader();
+      let earth;
+      let clouds;
+      
+      // Load textures with error handling
+      textureLoader.load(
+        'textures/earth_day.jpg',
+        function(texture) {
+          // Success - texture loaded
+          const material = new THREE.MeshPhongMaterial({
+            map: texture,
+            shininess: 25
+          });
+          
+          earth = new THREE.Mesh(geometry, material);
+          scene.add(earth);
+          
+          // Try to load optional cloud layer
+          textureLoader.load(
+            'textures/earth_clouds.jpg',
+            function(cloudTexture) {
+              const cloudGeometry = new THREE.SphereGeometry(1.01, 64, 64);
+              const cloudMaterial = new THREE.MeshPhongMaterial({
+                map: cloudTexture,
+                transparent: true,
+                opacity: 0.4
+              });
+              clouds = new THREE.Mesh(cloudGeometry, cloudMaterial);
+              scene.add(clouds);
+            },
+            undefined,
+            function(error) {
+              console.log('Cloud texture not found (optional)');
+            }
+          );
+          
+          document.getElementById('loading').style.display = 'none';
+        },
+        function(xhr) {
+          // Progress
+          const percent = (xhr.loaded / xhr.total * 100).toFixed(0);
+          document.getElementById('loading').textContent = 
+            `Loading textures... ${percent}%`;
+        },
+        function(error) {
+          // Error - fallback to colored sphere
+          document.getElementById('loading').innerHTML = 
+            '⚠️ Textures not found!<br><br>' +
+            'Using basic colored globe.<br><br>' +
+            '<small>To use real textures:<br>' +
+            '1. Create "textures" folder<br>' +
+            '2. Add earth_day.jpg<br>' +
+            'Get free textures from solarsystemscope.com/textures/</small>';
+          
+          setTimeout(() => {
+            document.getElementById('loading').style.display = 'none';
+          }, 5000);
+          
+          // Create fallback colored Earth
+          const fallbackMaterial = new THREE.MeshPhongMaterial({
+            color: 0x2233ff,
+            emissive: 0x112244
+          });
+          earth = new THREE.Mesh(geometry, fallbackMaterial);
+          scene.add(earth);
+          
+          // Add simple continents
+          addSimpleContinents(earth);
+        }
+      );
+      
+      // Simple continent shapes for fallback
+      function addSimpleContinents(earthMesh) {
+        const continentMaterial = new THREE.MeshPhongMaterial({
+          color: 0x00ff00
+        });
+        
+        const positions = [
+          [0.5, 0.3, 0.8],
+          [-0.4, 0.5, 0.7],
+          [0.7, -0.2, 0.6],
+          [-0.6, -0.4, 0.6],
+          [0.2, 0.7, 0.5],
+          [-0.3, -0.6, 0.7]
+        ];
+        
+        positions.forEach(pos => {
+          const continentGeom = new THREE.SphereGeometry(0.15, 16, 16);
+          const continent = new THREE.Mesh(continentGeom, continentMaterial);
+          continent.position.set(pos[0], pos[1], pos[2]);
+          earthMesh.add(continent);
+        });
+      }
+      
+      // Mouse controls
+      let isDragging = false;
+      let previousMousePosition = { x: 0, y: 0 };
+      
+      renderer.domElement.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        previousMousePosition = { x: e.clientX, y: e.clientY };
+      });
+      
+      renderer.domElement.addEventListener('mousemove', (e) => {
+        if (isDragging && earth) {
+          const deltaX = e.clientX - previousMousePosition.x;
+          const deltaY = e.clientY - previousMousePosition.y;
+          
+          earth.rotation.y += deltaX * 0.005;
+          earth.rotation.x += deltaY * 0.005;
+          
+          if (clouds) {
+            clouds.rotation.y += deltaX * 0.005;
+            clouds.rotation.x += deltaY * 0.005;
+          }
+          
+          previousMousePosition = { x: e.clientX, y: e.clientY };
+        }
+      });
+      
+      renderer.domElement.addEventListener('mouseup', () => {
+        isDragging = false;
+      });
+      
+      renderer.domElement.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        camera.position.z += e.deltaY * 0.001;
+        camera.position.z = Math.max(1.5, Math.min(5, camera.position.z));
+      });
+      
+      // Resize handling
+      window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+      
+      // Animation loop
+      function animate() {
+        requestAnimationFrame(animate);
+        
+        if (earth && !isDragging) {
+          earth.rotation.y += 0.001;
+        }
+        
+        if (clouds && !isDragging) {
+          clouds.rotation.y += 0.0012;
+        }
+        
+        renderer.render(scene, camera);
+      }
+      
+      animate();
+    }
+  </script>
+</body>
+</html>

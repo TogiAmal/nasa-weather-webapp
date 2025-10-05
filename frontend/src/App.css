@@ -1,0 +1,160 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+.app-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+}
+
+.panel {
+  width: 350px;
+  padding: 20px;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+h1 {
+  margin-top: 0;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+form input, form button {
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+form button {
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+}
+
+form button:disabled {
+  background-color: #999;
+}
+
+.map-container {
+  flex-grow: 1;
+}
+
+.results {
+  margin-top: 10px;
+}
+
+.weather-card {
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 5px;
+}
+
+.stat {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  font-size: 1.1rem;
+}
+
+.rain-chance {
+  font-weight: bold;
+  font-size: 1.2rem;
+  color: #007bff;
+}
+
+.error {
+  color: #d93025;
+}
+
+/* Mobile responsive layout */
+@media (max-width: 768px) {
+  .app-container {
+    flex-direction: column;
+  }
+  .panel {
+    width: 100%;
+    height: 50vh;
+    box-sizing: border-box;
+  }
+  .map-container {
+    height: 50vh;
+  }
+}
+
+.location-btn {
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #007bff;
+  border-radius: 4px;
+  background-color: #fff;
+  color: #007bff;
+  cursor: pointer;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.location-btn:hover {
+  background-color: #f0f8ff;
+}
+
+/* Add or update these styles in your App.css */
+
+form textarea {
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  resize: vertical; /* Allows user to resize the textarea height */
+  font-family: inherit;
+}
+
+/* Styles for Tabs */
+.tab-container {
+  display: flex;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #ccc;
+}
+
+.tab-button {
+  padding: 10px 15px;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #555;
+  border-bottom: 3px solid transparent;
+}
+
+.tab-button.active {
+  color: #007bff;
+  border-bottom: 3px solid #007bff;
+}
+.location-btn {
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #007bff;
+  border-radius: 4px;
+  background-color: #fff;
+  color: #007bff;
+  cursor: pointer;
+  margin-top: 10px; /* Add some space above the results */
+  text-align: center;
+  width: 100%;
+}
+
+.location-btn:hover {
+  background-color: #f0f8ff;
+}
